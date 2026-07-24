@@ -15,6 +15,8 @@ function App() {
   });
 
   const [alerts, setAlerts] = useState([]);
+  const [activeTab, setActiveTab] = useState("ALL");
+  const [acknowledgedIds, setAcknowledgedIds] = useState([]);
   const [popupAlert, setPopupAlert] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [flashAlert, setFlashAlert] = useState(false);
@@ -46,42 +48,38 @@ if (
 
     setPopupAlert(alert);
 
+    // HIGH alert only
     if (
         alert.severity === "HIGH" &&
         alert.recipient === "Security"
     ) {
 
-        // Play alarm
         alarmRef.current.currentTime = 0;
 
         alarmRef.current
             .play()
             .catch((err) => console.log("Alarm not played:", err));
 
-        // Flash card
         setFlashAlert(true);
-
-        // Stop everything after 5 seconds
-        setTimeout(() => {
-
-          console.log("STOP TIMER FIRED");
-
-            setFlashAlert(false);
-            setPopupAlert(null);
-
-            alarmRef.current.pause();
-            alarmRef.current.currentTime = 0;
-
-        }, 5000);
     }
+
+    // ALL alerts disappear after 5 seconds
+    setTimeout(() => {
+
+        setPopupAlert(null);
+
+        setFlashAlert(false);
+
+        alarmRef.current.pause();
+        alarmRef.current.currentTime = 0;
+
+    }, 5000);
 }
 
 // Always update alerts
-setAlerts(newAlerts);
+setAlerts(newAlerts); 
 
-}  
-
-catch (error) {
+} catch (error) {
       console.error("Error fetching data:", error);
     }
   };
@@ -106,6 +104,23 @@ catch (error) {
 
     return () => clearInterval(timer);
 }, []);
+    const acknowledgeAlert = (alertId) => {
+
+  // Remove from active alerts
+  setAcknowledgedIds((prev) => [...prev, alertId]);
+
+  // Close popup if this alert is being shown
+  if (popupAlert && popupAlert.id === alertId) {
+    setPopupAlert(null);
+  }
+
+  // Stop alarm immediately
+  alarmRef.current.pause();
+  alarmRef.current.currentTime = 0;
+
+  // Stop flashing card
+  setFlashAlert(false);
+};
     const getSeverityClass = (severity) => {
   switch (severity?.toUpperCase()) {
     case "HIGH":
@@ -121,6 +136,15 @@ catch (error) {
       return "severity";
   }
 };
+  const filteredAlerts = alerts
+  .filter((alert) => !acknowledgedIds.includes(alert.id))
+  .filter((alert) => {
+    if (activeTab === "ALL") return true;
+    if (activeTab === "STAFF") return alert.recipient === "Floor Staff";
+    if (activeTab === "SECURITY") return alert.recipient === "Security";
+    if (activeTab === "PROCUREMENT") return alert.recipient === "Procurement";
+    return true;
+  });
     return (
     <div className="dashboard">
      
@@ -156,11 +180,52 @@ catch (error) {
         </div>
 
         <div className="nav-links">
-          <span>Floor Staff</span>
-          <span>Security</span>
-          <span>Procurement</span>
-          <span>Reports</span>
-        </div>
+
+  <span
+    onClick={() => setActiveTab("ALL")}
+    style={{
+      cursor: "pointer",
+      color: activeTab === "ALL" ? "#0D9488" : "white",
+      borderBottom: activeTab === "ALL" ? "2px solid #0D9488" : "none"
+    }}
+  >
+    All
+  </span>
+
+  <span
+    onClick={() => setActiveTab("STAFF")}
+    style={{
+      cursor: "pointer",
+      color: activeTab === "STAFF" ? "#0D9488" : "white",
+      borderBottom: activeTab === "STAFF" ? "2px solid #0D9488" : "none"
+    }}
+  >
+    Floor Staff
+  </span>
+
+  <span
+    onClick={() => setActiveTab("SECURITY")}
+    style={{
+      cursor: "pointer",
+      color: activeTab === "SECURITY" ? "#0D9488" : "white",
+      borderBottom: activeTab === "SECURITY" ? "2px solid #0D9488" : "none"
+    }}
+  >
+    Security
+  </span>
+
+  <span
+    onClick={() => setActiveTab("PROCUREMENT")}
+    style={{
+      cursor: "pointer",
+      color: activeTab === "PROCUREMENT" ? "#0D9488" : "white",
+      borderBottom: activeTab === "PROCUREMENT" ? "2px solid #0D9488" : "none"
+    }}
+  >
+    Procurement
+  </span>
+
+</div>
 
       </nav>
 
@@ -289,6 +354,7 @@ catch (error) {
               <th>Recipient</th>
               <th>Zone</th>
               <th>Time</th>
+              <th>Action</th>
             </tr>
 
           </thead>
@@ -299,7 +365,7 @@ catch (error) {
 
               <tr>
 
-                <td colSpan="7">
+                <td colSpan="8">
                   No alerts available
                 </td>
 
@@ -307,7 +373,7 @@ catch (error) {
 
             ) : (
 
-              alerts.map((alert) => (
+              filteredAlerts.map((alert) => (
 
                 <tr key={alert.id}>
 
@@ -322,6 +388,22 @@ catch (error) {
                   <td>{alert.recipient}</td>
                   <td>{alert.zone}</td>
                   <td>{alert.timestamp}</td>
+                  <td>
+  <button
+    onClick={() => acknowledgeAlert(alert.id)}
+    style={{
+      background: "#0D9488",
+      color: "white",
+      border: "none",
+      padding: "6px 12px",
+      borderRadius: "6px",
+      cursor: "pointer",
+      fontSize: "12px"
+    }}
+  >
+    ✓ Acknowledge
+  </button>
+</td>
 
                 </tr>
 
@@ -348,7 +430,7 @@ catch (error) {
 
     ) : (
 
-        alerts.slice(0,3).map((alert) => (
+        filteredAlerts.slice(0,3).map((alert) => (
 
             <div className="notification-card" key={alert.id}>
 

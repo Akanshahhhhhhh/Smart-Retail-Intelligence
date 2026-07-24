@@ -51,11 +51,15 @@ def add_alert(alert: Alert):
     alerts.insert(0, alert_data)
 
     # Update statistics
-    if alert.alert_type.lower() == "confused":
+    alert_type = alert.alert_type.lower()
+
+    if "confused" in alert_type:
         stats["confused"] += 1
-    elif alert.alert_type.lower() == "suspicious":
+
+    elif "suspicious" in alert_type:
         stats["suspicious"] += 1
-    elif "stockout" in alert.alert_type.lower():
+
+    elif "stockout" in alert_type:
         stats["stockouts"] += 1
 
     return {
