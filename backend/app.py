@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
+import sqlite3
 
 app = FastAPI(title="Smart Retail Intelligence API")
 
@@ -13,6 +14,26 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def init_db():
+    conn = sqlite3.connect("sri.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS alerts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            person_id INTEGER,
+            alert_type TEXT,
+            severity TEXT,
+            message TEXT,
+            recipient TEXT,
+            zone TEXT,
+            timestamp TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
 
 class Alert(BaseModel):
     person_id: int
@@ -62,10 +83,37 @@ def add_alert(alert: Alert):
         stats["stockout_count"] += 1
     stats["total_alerts"] += 1
 
+    conn = sqlite3.connect("sri.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO alerts (person_id, alert_type, severity, message, recipient, zone, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        alert_data["person_id"],
+        alert_data["alert_type"],
+        alert_data["severity"],
+        alert_data["message"],
+        alert_data["recipient"],
+        alert_data["zone"],
+        alert_data["timestamp"]
+    ))
+    conn.commit()
+    conn.close()
+
     return {
         "message": "Alert added successfully",
         "alert": alert_data
     }
+
+@app.get("/alerts/history")
+def get_alert_history():
+    conn = sqlite3.connect("sri.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM alerts ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return {"alerts": [dict(row) for row in rows]}
 
 @app.get("/stats")
 def get_stats():
