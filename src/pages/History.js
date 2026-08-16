@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:8000";
 
@@ -7,6 +8,7 @@ function History() {
   const [alerts, setAlerts] = useState([]);
   const [severityFilter, setSeverityFilter] = useState("ALL");
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -94,7 +96,11 @@ function History() {
               </tr>
             ) : (
               filteredAlerts.map((alert) => (
-                <tr key={alert.id}>
+                <tr
+                 key={alert.id}
+                 onClick={() => navigate(`/incident/${alert.id}`)}
+                 style={{ cursor: "pointer" }}
+>
                   <td>{alert.id}</td>
                   <td>{alert.person_id}</td>
                   <td>{alert.alert_type}</td>

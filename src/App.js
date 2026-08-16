@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import "./App.css";
 import History from "./pages/History";
+import Analytics from "./pages/Analytics";
+import IncidentDetail from "./pages/IncidentDetail";
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/history" element={<History />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/incident/:id" element={<IncidentDetail />} />
         </Routes>
 
         <footer className="footer">

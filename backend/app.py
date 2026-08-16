@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
@@ -114,6 +114,18 @@ def get_alert_history():
     rows = cursor.fetchall()
     conn.close()
     return {"alerts": [dict(row) for row in rows]}
+
+@app.get("/alerts/{alert_id}")
+def get_alert_by_id(alert_id: int):
+    conn = sqlite3.connect("sri.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM alerts WHERE id = ?", (alert_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    return dict(row)
 
 @app.get("/stats")
 def get_stats():
