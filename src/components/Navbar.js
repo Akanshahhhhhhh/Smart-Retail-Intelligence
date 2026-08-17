@@ -53,6 +53,16 @@ function Navbar() {
 >
          Video Evidence
         </Link>
+        <Link
+        to="/settings"
+        style={{
+         color: isActive("/settings") ? "#0D9488" : "white",
+        borderBottom: isActive("/settings") ? "2px solid #0D9488" : "none",
+         textDecoration: "none",
+         }}
+>
+         Settings
+</Link>
       </div>
     </nav>
   );

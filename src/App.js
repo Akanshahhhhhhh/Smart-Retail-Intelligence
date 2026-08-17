@@ -7,6 +7,7 @@ import History from "./pages/History";
 import Analytics from "./pages/Analytics";
 import IncidentDetail from "./pages/IncidentDetail";
 import VideoEvidence from "./pages/VideoEvidence";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/incident/:id" element={<IncidentDetail />} />
             <Route path="/video-evidence" element={<VideoEvidence />} />
+            <Route path="/settings" element={<Settings />} />
         </Routes>
 
         <footer className="footer">
