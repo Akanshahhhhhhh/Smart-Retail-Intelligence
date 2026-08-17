@@ -43,6 +43,16 @@ function Navbar() {
         >
           Analytics
         </Link>
+        <Link
+        to="/video-evidence"
+        style={{
+            color: isActive("/video-evidence") ? "#0D9488" : "white",
+            borderBottom: isActive("/video-evidence") ? "2px solid #0D9488" : "none",
+            textDecoration: "none",
+         }}
+>
+         Video Evidence
+        </Link>
       </div>
     </nav>
   );
