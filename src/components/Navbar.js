@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
-function Navbar() {
+function Navbar({ onLogout }) {
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
@@ -63,6 +63,22 @@ function Navbar() {
 >
          Settings
 </Link>
+        <button
+        onClick={onLogout}
+        style={{
+            background: "transparent",
+            border: "1px solid #ef4444",
+            color: "#ef4444",
+            borderRadius: "6px",
+            padding: "6px 14px",
+            fontSize: "0.9rem",
+            fontWeight: 600,
+            cursor: "pointer",
+            marginLeft: "8px",
+            }}
+>
+         Logout
+        </button>
       </div>
     </nav>
   );

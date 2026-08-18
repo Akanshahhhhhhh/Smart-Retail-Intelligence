@@ -64,52 +64,6 @@ const styles = {
     fontSize: "0.9rem",
     marginTop: "4px",
   },
-  statGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "16px",
-  },
-  statBox: {
-    background: "#0a1929",
-    border: "1px solid #1e3a52",
-    borderRadius: "8px",
-    padding: "14px",
-  },
-  statLabel: {
-    color: "#64748b",
-    fontSize: "0.75rem",
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
-    marginBottom: "6px",
-  },
-  statValue: {
-    fontSize: "1.5rem",
-    fontWeight: 800,
-  },
-  inputRow: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "18px",
-  },
-  input: {
-    background: "#17324d",
-    color: "white",
-    padding: "8px 12px",
-    borderRadius: "8px",
-    border: "1px solid #2b4764",
-    fontSize: "14px",
-    width: "100px",
-  },
-  updateBtn: {
-    background: "#2dd4bf",
-    color: "#0a1929",
-    border: "none",
-    borderRadius: "8px",
-    padding: "8px 18px",
-    fontWeight: 700,
-    cursor: "pointer",
-    fontSize: "0.9rem",
-  },
   refreshBtn: {
     background: "transparent",
     border: "1px solid #2dd4bf",
@@ -121,11 +75,19 @@ const styles = {
     fontSize: "0.9rem",
     margin: "0 44px 24px 44px",
   },
-  feedback: (ok) => ({
-    color: ok ? "#22c55e" : "#ef4444",
-    fontSize: "0.85rem",
-    marginTop: "10px",
-  }),
+  aboutRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    borderBottom: "1px solid #1e3a52",
+    padding: "8px 0",
+    fontSize: "0.9rem",
+  },
+  aboutLabel: {
+    color: "#64748b",
+  },
+  aboutValue: {
+    fontWeight: 600,
+  },
   footer: {
     textAlign: "center",
     color: "#64748b",
@@ -136,9 +98,6 @@ const styles = {
 
 function Settings() {
   const [backendOk, setBackendOk] = useState(null);
-  const [stats, setStats] = useState(null);
-  const [visitorInput, setVisitorInput] = useState("");
-  const [updateMsg, setUpdateMsg] = useState(null);
   const [lastChecked, setLastChecked] = useState(null);
 
   const checkBackend = async () => {
@@ -150,19 +109,9 @@ function Settings() {
     }
   };
 
-  const fetchStats = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/stats`);
-      setStats(response.data);
-    } catch (err) {
-      setStats(null);
-    }
-  };
-
   const refreshAll = async () => {
     setLastChecked(new Date().toLocaleTimeString());
     await checkBackend();
-    await fetchStats();
   };
 
   useEffect(() => {
@@ -170,29 +119,11 @@ function Settings() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleUpdateVisitors = async () => {
-    const count = parseInt(visitorInput, 10);
-    if (isNaN(count) || count < 0) {
-      setUpdateMsg({ ok: false, text: "Enter a valid non-negative number." });
-      return;
-    }
-    try {
-      await axios.put(`${API_URL}/stats/visitors`, null, {
-        params: { count },
-      });
-      setUpdateMsg({ ok: true, text: `Visitor count updated to ${count}.` });
-      setVisitorInput("");
-      fetchStats();
-    } catch (err) {
-      setUpdateMsg({ ok: false, text: "Failed to update visitor count." });
-    }
-  };
-
   return (
     <div style={styles.page}>
       <h1 style={styles.heading}>Settings & System Status</h1>
       <p style={styles.subheading}>
-        Backend connectivity, live stats, and manual controls
+        Backend connectivity and project info
       </p>
 
       <button style={styles.refreshBtn} onClick={refreshAll}>
@@ -219,56 +150,27 @@ function Settings() {
         </div>
 
         <div style={styles.card}>
-          <div style={styles.cardTitle}>📊 Live Stats</div>
-          {stats ? (
-            <div style={styles.statGrid}>
-              <div style={styles.statBox}>
-                <div style={styles.statLabel}>Confused</div>
-                <div style={styles.statValue}>{stats.confused_count}</div>
-              </div>
-              <div style={styles.statBox}>
-                <div style={styles.statLabel}>Suspicious</div>
-                <div style={styles.statValue}>{stats.suspicious_count}</div>
-              </div>
-              <div style={styles.statBox}>
-                <div style={styles.statLabel}>Stockouts</div>
-                <div style={styles.statValue}>{stats.stockout_count}</div>
-              </div>
-              <div style={styles.statBox}>
-                <div style={styles.statLabel}>Total Alerts</div>
-                <div style={styles.statValue}>{stats.total_alerts}</div>
-              </div>
-              <div style={styles.statBox}>
-                <div style={styles.statLabel}>Visitors</div>
-                <div style={styles.statValue}>{stats.visitor_count}</div>
-              </div>
-            </div>
-          ) : (
-            <div style={styles.detailText}>Stats unavailable.</div>
-          )}
-        </div>
-
-        <div style={styles.card}>
-          <div style={styles.cardTitle}>🧑‍🤝‍🧑 Update Visitor Count</div>
-          <div style={styles.detailText}>
-            Manually set the current visitor count (useful for testing/demo).
+          <div style={styles.cardTitle}>ℹ️ About This System</div>
+          <div style={styles.aboutRow}>
+            <span style={styles.aboutLabel}>Project</span>
+            <span style={styles.aboutValue}>Smart Retail Intelligence</span>
           </div>
-          <div style={styles.inputRow}>
-            <input
-              type="number"
-              min="0"
-              placeholder="e.g. 12"
-              value={visitorInput}
-              onChange={(e) => setVisitorInput(e.target.value)}
-              style={styles.input}
-            />
-            <button style={styles.updateBtn} onClick={handleUpdateVisitors}>
-              Update
-            </button>
+          <div style={styles.aboutRow}>
+            <span style={styles.aboutLabel}>Type</span>
+            <span style={styles.aboutValue}>MSc Data Science Project</span>
           </div>
-          {updateMsg && (
-            <div style={styles.feedback(updateMsg.ok)}>{updateMsg.text}</div>
-          )}
+          <div style={styles.aboutRow}>
+            <span style={styles.aboutLabel}>Detection</span>
+            <span style={styles.aboutValue}>YOLOv9 + DeepSORT</span>
+          </div>
+          <div style={styles.aboutRow}>
+            <span style={styles.aboutLabel}>Backend</span>
+            <span style={styles.aboutValue}>FastAPI + SQLite</span>
+          </div>
+          <div style={{ ...styles.aboutRow, borderBottom: "none" }}>
+            <span style={styles.aboutLabel}>Frontend</span>
+            <span style={styles.aboutValue}>React</span>
+          </div>
         </div>
       </div>
 
