@@ -26,7 +26,7 @@ class CFG:
     TRACK_SECONDS = 5
     TRACK_THRESH = 0.35
     MATCH_THRESH = 0.9999
-    VIDEO_FILE = "path/to/your/video.mp4"  # set this to your local test clip path
+    VIDEO_FILE = r"C:\Users\Akansha\Desktop\SRI-agent1\Desktop\Shoplifting001_x264_0.mp4"  # set this to your local test clip path
     OUTPUT_PATH = './'
     DASHBOARD_URL = "http://127.0.0.1:8000/alerts"  # localhost, since running both locally tonight
 
