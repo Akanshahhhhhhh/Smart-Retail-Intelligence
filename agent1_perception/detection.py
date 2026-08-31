@@ -9,6 +9,7 @@ Note: reference paper used YOLOv8 + BOT-SORT. We implemented with YOLOv9 + ByteT
 import warnings
 warnings.filterwarnings('ignore')
 import json
+import os
 import cv2
 import requests
 from ultralytics import YOLO
@@ -29,6 +30,11 @@ class CFG:
     OUTPUT_PATH = './'
     DASHBOARD_URL = "http://127.0.0.1:8000/alerts"  # localhost, since running both locally tonight
 
+    # NEW: where the backend can find the static heatmap image.
+    # Adjust this relative path so it actually lands inside your FastAPI
+    # backend's "static" folder (the folder app.py serves from).
+    HEATMAP_PNG_PATH = os.path.join("..", "sri-dashboard", "backend", "static", "heatmap.png")
+
 
 def send_alert_to_dashboard(person_id, alert_type, location):
     try:
@@ -44,6 +50,17 @@ def send_alert_to_dashboard(person_id, alert_type, location):
         print("Alert sent to dashboard!")
     except Exception as e:
         print(f"Could not send: {e}")
+
+
+def save_heatmap_image(frame, path):
+    """NEW: persist the last annotated frame (cumulative heatmap) as a PNG
+    so the FastAPI backend has a static file to serve to the dashboard."""
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        cv2.imwrite(path, frame)
+        print(f"Heatmap image saved to {path}")
+    except Exception as e:
+        print(f"Could not save heatmap image: {e}")
 
 
 def run_detection_and_tracking():
@@ -72,6 +89,7 @@ def run_detection_and_tracking():
     classifier = BehaviourClassifier(fps=video_info.fps)
     all_alerts = []
     frame_index = 0
+    last_annotated_frame = None  # NEW: track the most recent annotated frame
 
     with sv.VideoSink(target_path=output_filename, video_info=video_info) as sink:
         for frame in frames_generator:
@@ -120,12 +138,17 @@ def run_detection_and_tracking():
                     all_alerts.append(alert)
 
             sink.write_frame(frame=annotated_frame)
+            last_annotated_frame = annotated_frame  # NEW: remember it for the PNG save below
             frame_index += 1
 
     with open(f'{CFG.OUTPUT_PATH}alerts.json', 'w') as f:
         json.dump(all_alerts, f, indent=2)
     print(f"Saved {len(all_alerts)} alerts to alerts.json")
     print(f"Done. Output saved to {output_filename}")
+
+    # NEW: save the final cumulative heatmap frame as a static PNG for the dashboard
+    if last_annotated_frame is not None:
+        save_heatmap_image(last_annotated_frame, CFG.HEATMAP_PNG_PATH)
 
 
 if __name__ == "__main__":
