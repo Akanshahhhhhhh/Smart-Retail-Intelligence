@@ -106,6 +106,22 @@ def add_alert(alert: Alert):
 def get_stats():
     return stats
 
+# Get zone-wise activity for heatmap
+@app.get("/heatmap/zones")
+def get_heatmap_zones():
+    zone_counts = {}
+    for alert in alerts:
+        zone = alert.get("zone", "General")
+        zone_counts[zone] = zone_counts.get(zone, 0) + 1
+
+    zones_list = [
+        {"zone": zone, "count": count}
+        for zone, count in zone_counts.items()
+    ]
+    zones_list.sort(key=lambda z: z["count"], reverse=True)
+
+    return {"zones": zones_list}
+
 
 # Update visitor count
 @app.put("/stats/visitors")
